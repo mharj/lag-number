@@ -100,9 +100,19 @@ describe('LagHumber', function() {
 		it('should work when going 0 => 100 and 100 => 0 with callback and promise', (done) => {
 			let value = new LagNumber({lag: 100, min: 0, max: 280});
 			value
-				.setPromise(0, 100, 25, (value) => expect(value).to.be.a('number'))
-				.then(() => value.setPromise(100, 0, 10, (value) => expect(value).to.be.a('number')))
+				.setPromise(0, 100, 10, (value) => {
+					// console.log('value');
+					expect(value).to.be.a('number');
+				})
 				.then(() => {
+					console.log('done1');
+					return value.setPromise(100, 0, 10, (value) => {
+						// console.log('value');
+						expect(value).to.be.a('number')
+					});
+				})
+				.then(() => {
+					console.log('done2');
 					done();
 				});
 		});

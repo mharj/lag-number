@@ -112,10 +112,6 @@ class LagNumber extends EventEmitter {
 			if ( rebaseLag < 0 ) {
 				rebaseLag = -rebaseLag;
 			}
-			if ( isFinite(rebaseLag) ) {
-				rebaseLag = 1;
-			}
-
 			this.promiseTimer = setTimeout(() => {
 				clearTimeout(this.interval);
 				if (callback) {
