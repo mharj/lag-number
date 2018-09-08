@@ -65,17 +65,8 @@ describe('LagHumber', function() {
 				.and.equal(50);
 			expect(value.get(now + 50))
 				.to.be.a('number')
-				.and.equal(75);
-			expect(value.get(now + 100))
-				.to.be.a('number')
-				.and.equal(100);
-			expect(value.get(now + 150))
-				.to.be.a('number')
-				.and.equal(125);
-			expect(value.get(now + 200))
-				.to.be.a('number')
 				.and.equal(150);
-			expect(value.get(now + 250))
+			expect(value.get(now + 100))
 				.to.be.a('number')
 				.and.equal(150);
 		});
@@ -101,6 +92,15 @@ describe('LagHumber', function() {
 			let value = new LagNumber({lag: 100});
 			value
 				.setPromise(0, 100, 10, (value) => expect(value).to.be.a('number'))
+				.then(() => value.setPromise(100, 0, 10, (value) => expect(value).to.be.a('number')))
+				.then(() => {
+					done();
+				});
+		});
+		it('should work when going 0 => 100 and 100 => 0 with callback and promise', (done) => {
+			let value = new LagNumber({lag: 100, min: 0, max: 280});
+			value
+				.setPromise(0, 100, 25, (value) => expect(value).to.be.a('number'))
 				.then(() => value.setPromise(100, 0, 10, (value) => expect(value).to.be.a('number')))
 				.then(() => {
 					done();

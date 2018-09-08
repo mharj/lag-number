@@ -8,7 +8,7 @@ const EventEmitter = require('events');
 function getSmallestValue(arr) {
 	let ret = null;
 	arr.forEach((v) => {
-		if (!isNaN(v) && (!ret || ret > v)) {
+		if (!isNaN(v) && ( ret === null || ret > v)) {
 			ret = v;
 		}
 	});
@@ -22,7 +22,7 @@ function getSmallestValue(arr) {
 function getBiggestValue(arr) {
 	let ret = null;
 	arr.forEach((v) => {
-		if (!isNaN(v) && (!ret || ret < v)) {
+		if (!isNaN(v) && ( ret === null || ret < v)) {
 			ret = v;
 		}
 	});
@@ -108,13 +108,21 @@ class LagNumber extends EventEmitter {
 				}, callbackDelay);
 			}
 			clearTimeout(this.promiseTimer);
+			let rebaseLag = (this.stopValue - this.startValue)/(this.maxValue-this.minValue)*this.lag;
+			if ( rebaseLag < 0 ) {
+				rebaseLag = -rebaseLag;
+			}
+			if ( isFinite(rebaseLag) ) {
+				rebaseLag = 1;
+			}
+
 			this.promiseTimer = setTimeout(() => {
 				clearTimeout(this.interval);
 				if (callback) {
 					callback(stopValue);
 				}
 				resolve();
-			}, this.lag);
+			}, rebaseLag);
 		});
 	}
 	/**
@@ -128,7 +136,7 @@ class LagNumber extends EventEmitter {
 		}
 		let currentTs = isNaN(ts) ? new Date().getTime() : ts;
 		let valueDiff = (this.stopValue - this.startValue);
-		let rebaseLag = (this.maxValue-this.minValue)/this.lag*valueDiff;
+		let rebaseLag = valueDiff/(this.maxValue-this.minValue)*this.lag;
 		if ( rebaseLag < 0 ) {
 			rebaseLag = -rebaseLag;
 		}
