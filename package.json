@@ -1,0 +1,35 @@
+{
+  "name": "lag-number",
+  "version": "0.0.1",
+  "description": "Number container which returns value with time based lag",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mharj/lag-number.git"
+  },
+  "keywords": [
+    "lag",
+    "number"
+  ],
+  "author": "mharj",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mharj/lag-number/issues"
+  },
+  "homepage": "https://github.com/mharj/lag-number#readme",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "eslint": "^5.5.0",
+    "eslint-config-google": "^0.10.0",
+    "mocha": "^5.2.0"
+  },
+  "dependencies": {
+    "events": "^3.0.0"
+  }
+}
