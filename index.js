@@ -1,21 +1,57 @@
 const EventEmitter = require('events');
+
+/**
+ * Get smallest number value from array
+ * @param {Array} arr Array of number values
+ * @return {Number}
+ */
+function getSmallestValue(arr) {
+	let ret = null;
+	arr.forEach((v) => {
+		if (!isNaN(v) && (!ret || ret > v)) {
+			ret = v;
+		}
+	});
+	return ret;
+}
+/**
+ * Get Buggest number value from array
+ * @param {Array} arr Array of number values
+ * @return {Number}
+ */
+function getBiggestValue(arr) {
+	let ret = null;
+	arr.forEach((v) => {
+		if (!isNaN(v) && (!ret || ret < v)) {
+			ret = v;
+		}
+	});
+	return ret;
+}
+
 /**
  * Lag number class
  */
 class LagNumber extends EventEmitter {
 	/**
 	 * Lag Number constructor
-	 * @param {Number} lag How long value will take until reach to stopValue
+	 * @param {Object} options
+	 * @param {Number} options.lag Lag in milliseconds
+	 * @param {Number} options.min (optional) Minimum value (not autoscale)
+	 * @param {Number} options.max (optional) Maximum value (not autoscale)
 	 * @param {Number} startValue (optional) start value
 	 * @param {Number} stopValue (optional) end value
 	 * @param {Number} ts (optional) current timestamp
 	 */
-	constructor(lag, startValue, stopValue, ts) {
+	constructor(options, startValue, stopValue, ts) {
 		super();
-		if (!lag || isNaN(lag)) {
-			throw new TypeError('lag value is undefined or not number');
+		if (!options || !options.lag || isNaN(options.lag)) {
+			throw new TypeError('lag option is undefined or not number');
 		}
-		this.lag = lag;
+		this.lag = options.lag;
+		this.maxValue = options.max;
+		this.minValue = options.min;
+		this.autoScale = isNaN(options.max) || isNaN(options.min) ? true : false;
 		this.timer = null;
 		this.promiseTimer = null;
 		this.interval = null;
@@ -34,13 +70,17 @@ class LagNumber extends EventEmitter {
 	 * @param {Number} ts (optional) current timestamp
 	 */
 	set(startValue, stopValue, ts) {
-		if ( this.timer ) {
+		if ( this.autoScale ) {
+			this.maxValue = getBiggestValue([this.maxValue, startValue, stopValue]);
+			this.minValue = getSmallestValue([this.minValue, startValue, stopValue]);
+		}
+		if (this.timer) {
 			clearTimeout(this.timer);
 		}
 		this.startValue = startValue;
 		this.stopValue = stopValue;
 		this.startTs = isNaN(ts) ? new Date().getTime() : ts;
-		this.timer = setTimeout(()=> {
+		this.timer = setTimeout(() => {
 			this.emit('target');
 		}, this.lag);
 	}
@@ -55,23 +95,23 @@ class LagNumber extends EventEmitter {
 	 */
 	setPromise(startValue, stopValue, callbackDelay, callback) {
 		this.set(startValue, stopValue);
-		if ( callback ) {
-			callback( startValue );
+		if (callback) {
+			callback(startValue);
 		}
-		return new Promise( (resolve, reject) => {
-			if ( ! isNaN(callbackDelay) ) {
+		return new Promise((resolve, reject) => {
+			if (!isNaN(callbackDelay)) {
 				clearTimeout(this.interval);
-				this.interval = setInterval( () => {
-					if ( callback ) {
-						callback( this.get() );
+				this.interval = setInterval(() => {
+					if (callback) {
+						callback(this.get());
 					}
 				}, callbackDelay);
 			}
 			clearTimeout(this.promiseTimer);
-			this.promiseTimer = setTimeout( () => {
+			this.promiseTimer = setTimeout(() => {
 				clearTimeout(this.interval);
-				if ( callback ) {
-					callback( stopValue );
+				if (callback) {
+					callback(stopValue);
 				}
 				resolve();
 			}, this.lag);
@@ -87,9 +127,14 @@ class LagNumber extends EventEmitter {
 			return null;
 		}
 		let currentTs = isNaN(ts) ? new Date().getTime() : ts;
-		let p = (currentTs - this.startTs) / this.lag;
-		let value = (this.stopValue - this.startValue) * p + this.startValue;
-		if ( this.startValue < this.stopValue ) {
+		let valueDiff = (this.stopValue - this.startValue);
+		let rebaseLag = (this.maxValue-this.minValue)/this.lag*valueDiff;
+		if ( rebaseLag < 0 ) {
+			rebaseLag = -rebaseLag;
+		}
+		let p = (currentTs - this.startTs) / rebaseLag;
+		let value = valueDiff * p + this.startValue;
+		if (this.startValue < this.stopValue) {
 			return value < this.stopValue ? value : this.stopValue;
 		} else {
 			return value > this.stopValue ? value : this.stopValue;

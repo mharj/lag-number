@@ -1,6 +1,6 @@
 {
   "name": "lag-number",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Number container which returns value with time based lag",
   "main": "index.js",
   "directories": {
